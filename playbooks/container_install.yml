@@ -1,0 +1,34 @@
+- name: Install Docker and Docker-Compose
+  hosts: all
+  become: true  
+
+  tasks:
+    - name: Install packages 
+      apt_rpm:
+        pkg:
+          - docker-engine
+          - docker-compose
+          - python3-module-docker
+          - python3-module-requests
+        state: present
+
+    - name: Add user to docker_group
+      command: usermod youruser -aG docker
+
+    - name: Run Docker
+      systemd:
+        name: docker
+        enabled: yes
+        state: started
+
+    - name: Check docker
+      command: docker -v
+
+    - name: Check docker-compose
+      command: docker compose version
+
+  handlers:
+    - name: Restart docker
+      systemd:
+        name: docker
+        state: restarted

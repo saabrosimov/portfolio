@@ -1,0 +1,33 @@
+- name: NTP install and service
+  hosts: all
+  become: true  
+
+  tasks:
+    - name: Install Clock
+      timezone:
+        name: Europe/Moscow
+
+    - name:  Install chrony and update conf
+      apt_rpm:
+        name: chrony
+        state: present
+    
+    - name: Use template
+      template:
+        src: ../templates/chrony.conf.j2    
+        dest: /etc/chrony.conf
+
+    - name: Start and on to enabled services
+      systemd:
+        name: chronyd
+        enabled: yes
+        state: started
+
+    - name: Check times
+      command: timedatectl
+  
+  handlers:
+    - name: Restart chronyd
+      systemd:
+        name: chronyd
+        state: restarted

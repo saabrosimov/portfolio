@@ -1,0 +1,7 @@
+- import_playbook: playbooks/update_install.yml
+- import_playbook: playbooks/ntp.yml
+- import_playbook: playbooks/iac_install.yml
+- import_playbook: playbooks/container_install.yml
+- import_playbook: playbooks/others_packages.yml
+- import_playbook: playbooks/openstackclient.yml
+- import_playbook: playbooks/semaphore_install.yml

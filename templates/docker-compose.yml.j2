@@ -1,0 +1,43 @@
+services:
+  semaphore-ui:
+    image: semaphoreui/semaphore:latest
+    restart: always
+    container_name: semaphore-ui
+    volumes:
+      - ./data:/tmp/semaphore
+    environment:
+      SEMAPHORE_DB_USER: "semaphore"
+      SEMAPHORE_DB_PASS: "yourpassword"
+      SEMAPHORE_DB_HOST: "0.0.0.0"
+      SEMAPHORE_DB_PORT: "5432"
+      SEMAPHORE_DB_DIALECT: "postgres"
+      SEMAPHORE_DB: "semaphore"
+      SEMAPHORE_PLAYBOOK_PATH: "/tmp/semaphore/"
+      SEMAPHORE_ADMIN_PASSWORD: "yorpassword"
+      SEMAPHORE_ADMIN_NAME: "admin"
+      SEMAPHORE_ADMIN: "admin"
+      SEMAPHORE_ACCESS_KEY_ENCRYPTION: "yourkey"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - sem-net
+
+  nginx:
+    image: nginx:alpine
+    restart: always
+    container_name: nginx-semaphore
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /opt/semaphore/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - /opt/semaphore/ssl/full.pem:/etc/nginx/ssl/full.pem:ro
+      - /opt/semaphore/ssl/key.pem:/etc/nginx/ssl/key.pem:ro
+    depends_on:
+      - semaphore-ui
+    networks:
+      - sem-net
+
+networks:
+  sem-net:
+    driver: bridge

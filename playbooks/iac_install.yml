@@ -1,0 +1,17 @@
+- name: Install and configuration IaC services
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Install packages for IaC
+      apt_rpm:
+        pkg:
+          - ansible
+          - opentofu
+          - python3
+        state: present
+
+    - name: Add mirrow yandex for opentofu
+      copy:
+         src: /opt/ALT/ansible/playbooks/deploy-host/files/tofurc
+         dest: /home/altlinux/.tofurc

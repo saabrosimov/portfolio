@@ -1,0 +1,10 @@
+- name: Install client openstack
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Install packages for OpenStack
+      apt_rpm:
+        pkg:
+          - python3-module-openstackclient
+        state: present

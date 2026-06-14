@@ -1,0 +1,119 @@
+- name: Install Semaphore
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Install packages for
+      apt_rpm:
+        pkg:
+          - semaphore
+          - postgresql16-server
+          - python3-module-psycopg2
+        state: present
+
+    - name: Check install packages
+      command: semaphore version
+
+    - name: Check if PostgreSQL cluster is already initialized
+      ansible.builtin.stat:
+        path: /var/lib/pgsql/data/PG_VERSION
+      register: pg_data_version
+
+    - name: Initdb
+      ansible.builtin.command: "initdb -D /var/lib/pgsql/data -U postgres -g"
+      become: true
+      become_user: postgres
+      args:
+        creates: /var/lib/pgsql/data/PG_VERSION
+      when: not pg_data_version.stat.exists
+          
+    - name: Add pg_hba.conf
+      template:
+          src: ../templates/pg_hba.conf.j2
+          dest: /var/lib/pgsql/data/pg_hba.conf
+          owner: postgres
+          group: postgres
+          mode: '0644'
+      register: conf
+
+    - name: Add postgresq.conf
+      template:
+          src: ../templates/postgresql.conf.j2
+          dest: /var/lib/pgsql/data/postgresql.conf
+          owner: postgres
+          group: postgres
+          mode: '0644'
+      register: conf
+    
+    - name: Enable postgresql service
+      systemd:
+         name: postgresql
+         enabled: yes
+          
+    - name: Restart service db
+      systemd:
+         name: postgresql
+         state: restarted
+
+
+    - name: Create PostgreSQL user for Semaphore
+      postgresql_user:
+        name: semaphore
+        password: yourpassword
+        encrypted: yes
+        role_attr_flags: CREATEDB,SUPERUSER
+        state: present
+      become_user: postgres
+
+    - name: Create PostgreSQL database for Semaphore
+      postgresql_db:
+        name: semaphore
+        owner: semaphore
+        state: present
+      become_user: postgres
+     
+    - name: Restart service db
+      systemd:
+         name: postgresql
+         state: restarted
+
+    - name: Create directory for project
+      file:
+        path: /opt/semaphore/ssl
+        state: directory
+        recurse: yes
+
+    - name: Create directory for project
+      file:
+        path: /opt/semaphore/data
+        state: directory
+
+    - name: Copy SSL
+      copy:  
+        src: ../files/certs/full.pem
+        dest: /opt/semaphore/ssl/full.pem
+
+    - name: Copy SSL
+      copy:
+        src: ../files/certs/privkey.pem
+        dest: /opt/semaphore/ssl/privkey.pem
+
+    - name: Copy nginx.conf
+      template:
+        src: ../templates/nginx.conf.j2
+        dest: /opt/semaphore/nginx.conf
+
+    - name: Copy nginx.conf
+      template:
+        src: ../templates/docker-compose.yml.j2
+        dest: /opt/semaphore/docker-compose.yml
+
+    - name: Add directory
+      command: mkdir -p /opt/semaphore
+     
+    - name: Start Semaphore containers
+      command: docker compose up -d
+      args:
+        chdir: /opt/semaphore
+      become: yes
+      register: compose_out

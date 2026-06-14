@@ -1,0 +1,11 @@
+- name: Разработка ansible конфигурации развертывания deploy хоста на ОС ALT
+  hosts: all
+  become: true 
+
+  tasks:
+    - name: Upgrade systems
+      apt_rpm:
+        update_cache: true
+        dist_upgrade: true
+        update_kernel: true
+

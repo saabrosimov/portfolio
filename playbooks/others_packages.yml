@@ -1,0 +1,14 @@
+- name: Install others packages
+  hosts: all
+  become: true  
+
+  tasks:
+    - name: Install packages 
+      apt_rpm:
+        pkg:
+          - vim-console
+          - nano
+          - emacs-mew
+          - git
+          - htop
+        state: present
