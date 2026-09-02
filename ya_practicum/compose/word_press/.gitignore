@@ -1,0 +1,27 @@
+# Чувствительные данные
+.env
+db_password.txt
+db_root_password.txt
+
+# Docker volumes
+data/
+mysql_data/
+
+# IDE и редакторы
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS файлы
+.DS_Store
+Thumbs.db
+
+# Логи
+*.log
+logs/
+
+# Временные файлы
+tmp/
+temp/
