@@ -1,0 +1,38 @@
+sources:
+  nginx_access:
+    type: file
+    include:
+      - /var/log/nginx/access.log
+    read_from: beginning
+
+  nginx_error:
+    type: file
+    include:
+      - /var/log/nginx/error.log
+    read_from: beginning
+
+transforms:
+  add_access_type:
+    type: remap
+    inputs:
+      - nginx_access
+    source: '.log_type = "access"'
+
+  add_error_type:
+    type: remap
+    inputs:
+      - nginx_error
+    source: '.log_type = "error"'
+
+sinks:
+  loki_output:
+    type: loki
+    inputs:
+      - add_access_type
+      - add_error_type
+    endpoint: http://localhost:3100
+    encoding:
+      codec: json
+    labels:
+      job: vector
+      log_type: "{{ log_type }}"
